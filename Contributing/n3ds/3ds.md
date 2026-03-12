@@ -26,7 +26,9 @@ If the series name contains an 'and', you may use the ampersand. So, Mario and L
 
 If the series has been shortened, then the subtitle should also be shortened unless it is exactly one word long. For example, Mario and Luigi - Bowser's Inside Story would be written as m&l-bis, but Mario and Luigi - Brothership would be written as m&l-brothership.
 
-On top of this, the subtitle should be shortened in any case in which it is three words or longer, excluding fillers, which should not be written. For example, Paper Mario and the Thousand Year Door should become paper-mario-ttyd. However, Kirby and the Rainbow Curse would simply be written as kirby-and-the-rainbow-curse.
+On top of this, the subtitle should be shortened in any case in which it is three words or longer, excluding fillers. For example, Paper Mario and the Thousand Year Door should become paper-mario-ttyd. However, Kirby and the Rainbow Curse would simply be written as kirby-and-the-rainbow-curse.
+
+Hyphenated words will be considered as two words. Spider-Man will be considered as "Spider Man". Filler words are any words that would not be capitalized if they were placed in the middle of a title.
 
 Then, move your jingles into `jingles/n3ds`, and edit the `index.json` in the root of the repository accordingly, adding a new entry in the json with this format:
 
