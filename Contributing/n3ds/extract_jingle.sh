@@ -2,25 +2,37 @@
 
 shopt -s nullglob
 
-if ! command -v 3dstool >/dev/null 2>&1
-then
-    echo "3dstool could not be found. Please install 3dstool to your PATH."
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Select bundled tools based on OS
+case "$(uname)" in
+    Darwin)
+        TOOL_3DS="$SCRIPT_DIR/tools/macos/3dstool"
+        VGM="$SCRIPT_DIR/tools/macos/vgmstream-cli"
+        ;;
+    Linux)
+        TOOL_3DS="$SCRIPT_DIR/tools/linux/3dstool"
+        VGM="$SCRIPT_DIR/tools/linux/vgmstream-cli"
+        ;;
+    *)
+        echo "Unsupported OS: $(uname). Only Linux and macOS are supported."
+        exit 1
+        ;;
+esac
+
+if [ ! -x "$TOOL_3DS" ]; then
+    echo "3dstool not found or not executable at: $TOOL_3DS"
     exit 1
 fi
-if ! command -v vgmstream-cli >/dev/null 2>&1
-then
-    echo "vgmstream-cli could not be found. Please install vgmstream-cli to your PATH."
-    exit 1
-fi
-if ! command -v python3 >/dev/null 2>&1
-then
-    echo "python3 could not be found. This is not required, but may cause problems, so we exit here anyways.."
+if [ ! -x "$VGM" ]; then
+    echo "vgmstream-cli not found or not executable at: $VGM"
     exit 1
 fi
 
-# Path to the repo root's jingles directory and index.json, relative to this script.
-# This script lives at Contributing/n3ds/ inside the repo.
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 could not be found. Please install python3."
+    exit 1
+fi
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 JINGLES_DIR="$REPO_ROOT/jingles/n3ds"
 INDEX_JSON="$REPO_ROOT/index.json"
@@ -28,18 +40,18 @@ INDEX_JSON="$REPO_ROOT/index.json"
 GAMES_DIR="$SCRIPT_DIR/games"
 mkdir -p "$JINGLES_DIR"
 
-for ROM in "$GAMES_DIR"/*.3ds "$GAMES_DIR"/*.cci; do
+for ROM in "$GAMES_DIR"/*.3ds "$GAMES_DIR"/*.cci "$GAMES_DIR"/*.app "$GAMES_DIR"/*.cia "$GAMES_DIR"/*.z3ds "$GAMES_DIR"/*.zcci; do
     echo "Processing $ROM..."
     BASENAME="${ROM%.*}"
     BASENAME="$(basename "$BASENAME")"
 
-    3dstool -xvtf cci "$ROM" -0 partition0.cxi --header /dev/null > /dev/null
-    3dstool -xvtf cxi partition0.cxi --exefs exefs.bin --exefs-auto-key > /dev/null
-    3dstool -xvtfu exefs exefs.bin --exefs-dir exefs_dir/ > /dev/null
+    "$TOOL_3DS" -xvtf cci "$ROM" -0 partition0.cxi --header /dev/null > /dev/null
+    "$TOOL_3DS" -xvtf cxi partition0.cxi --exefs exefs.bin --exefs-auto-key > /dev/null
+    "$TOOL_3DS" -xvtfu exefs exefs.bin --exefs-dir exefs_dir/ > /dev/null
 
     mv exefs_dir/banner.bnr banner.bin
 
-    3dstool -xvtf banner banner.bin --banner-dir banner_dir/ > /dev/null
+    "$TOOL_3DS" -xvtf banner banner.bin --banner-dir banner_dir/ > /dev/null
 
     # Trim bcwav to the size declared in its header
     python3 -c "
@@ -101,7 +113,7 @@ with open('banner_dir/banner.bcwav','wb') as f:
             print tolower(slug) ".wav", human
         }')
 
-    vgmstream-cli banner_dir/banner.bcwav -o "$JINGLES_DIR/$FINAL" > /dev/null
+    "$VGM" banner_dir/banner.bcwav -o "$JINGLES_DIR/$FINAL" > /dev/null
 
     rm -r partition0.cxi exefs.bin exefs_dir/ banner.bin banner_dir/
 
