@@ -7,8 +7,8 @@ s = s.encode('ascii', 'ignore').decode()
 # Strip TitleID prefix
 s = re.sub(r'^0004[0-9A-Fa-f]{12}[-_ ]?', '', s)
 
-# Strip extension
-s = re.sub(r'\.[^.]+$', '', s)
+# Strip extension (known ROM/audio types only, to avoid eating dots mid-title)
+s = re.sub(r'\.(3ds|cci|app|cia|z3ds|zcci|wav)$', '', s, flags=re.I)
 
 # Strip trailing noise tags
 s = re.sub(r'[-_ .]?[Ss]tandard$', '', s)
