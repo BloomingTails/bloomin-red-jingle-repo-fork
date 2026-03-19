@@ -5,5 +5,7 @@
 *.app
 *.z3ds
 *.zcci
+*.rvz
+*.iso
 
 
